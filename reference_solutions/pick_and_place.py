@@ -1,4 +1,41 @@
 #!/usr/bin/env python3
+"""
+Authors: Samriddhi Dubey, MTech, IIT Gandhinagar
+         Yash Kashiv, MTech, IIT Gandhinagar
+
+REFERENCE SOLUTION: Pick and Place Challenge
+
+This code implements a complete pick-and-place operation for the FR3 robotic arm.
+It combines inverse kinematics control with gripper manipulation to:
+1. Move the end-effector to a home position
+2. Navigate to a pick location and grasp an object using the Franka gripper
+3. Transport the grasped object to a place location
+4. Release the object at the target location
+5. Return to the home position
+
+The system uses:
+- DLS (Damped Least Squares) inverse kinematics for smooth Cartesian space motion
+- Thread-based control for real-time velocity commands
+- Action clients for gripper control (homing, opening, grasping)
+- Blocking motion primitives to ensure sequential execution of pick-and-place steps
+
+The controller continuously monitors pose errors and stops when position and orientation
+thresholds are met, ensuring precise object manipulation.
+
+STUDENT TODO:
+1. Find and fill in the correct ROS topic names:
+   - Run 'rostopic list' in a terminal to see all available topics
+   - Find the topic for subscribing to joint states
+   - Find the topic for subscribing to end-effector pose
+   - Find the topic for publishing joint velocity commands
+   - Replace the three "TODO" strings in the DLSVelocityCommander with the correct topic names
+
+2. Fill in the end-effector poses for the pick-and-place sequence below.
+   Each pose consists of:
+   - Position: [x, y, z] in meters
+   - Orientation: [qx, qy, qz, qw] as a quaternion
+
+"""
 
 import rospy
 import numpy as np
@@ -110,10 +147,10 @@ class FrankaPickPlaceController:
             robot_state=self.state,
             ik_solver=self.ik,
             custom_ds=self.twist_fn,
-            joint_state_topic="/fr3/joint_states",
-            ee_pose_topic="/fr3/ee_pose",
+            joint_state_topic="TODO",
+            ee_pose_topic="TODO",
             ee_pose_msg_type=Pose,
-            velocity_command_topic="/fr3/joint_velocity_controller/joint_velocity_command",
+            velocity_command_topic="TODO",
             max_cartesian_vel=0.05,
             max_angular_vel=0.2,
         )
@@ -177,30 +214,63 @@ if __name__ == "__main__":
     rospy.sleep(1.0)
 
     # -------------------------
-    # HOME
+    # HOME POSE
     # -------------------------
+    # TODO: Students should fill in the home pose
+    # Position: [x, y, z] in meters
+    # Orientation: [qx, qy, qz, qw] as quaternion
     home_pose = (
-        [0.30759087204933167, 0.00011447259748820215, 0.48617154359817505],
-        [0.9999913738392597, 0.004149723519153129,
-         6.674362182470983e-06, 0.00017887771648540977]
+        [
+            # TODO: Fill in home position x
+            # TODO: Fill in home position y
+            # TODO: Fill in home position z
+        ],
+        [
+            # TODO: Fill in home orientation qx
+            # TODO: Fill in home orientation qy
+            # TODO: Fill in home orientation qz
+            # TODO: Fill in home orientation qw
+        ]
     )
 
     # -------------------------
-    # PICK
+    # PICK POSE
     # -------------------------
+    # TODO: Students should fill in the pick pose (where to grasp the object)
+    # Position: [x, y, z] in meters
+    # Orientation: [qx, qy, qz, qw] as quaternion
     pick_pose = (
-        [0.563630998134613, -0.20336730778217316, 0.1382521539926529],
-        [0.9995627529155964, 0.028155959387577277,
-         -0.008999100017086075, -0.0007490885408360415]
+        [
+            # TODO: Fill in pick position x
+            # TODO: Fill in pick position y
+            # TODO: Fill in pick position z
+        ],
+        [
+            # TODO: Fill in pick orientation qx
+            # TODO: Fill in pick orientation qy
+            # TODO: Fill in pick orientation qz
+            # TODO: Fill in pick orientation qw
+        ]
     )
 
     # -------------------------
-    # PLACE
+    # PLACE POSE
     # -------------------------
+    # TODO: Students should fill in the place pose (where to release the object)
+    # Position: [x, y, z] in meters
+    # Orientation: [qx, qy, qz, qw] as quaternion
     place_pose = (
-        [0.5072759389877319, 0.3937574028968811, 0.188519686460495],
-        [0.9638487886059453, 0.2658570894324009,
-         0.002587464347219151, 0.017573438184830578]
+        [
+            # TODO: Fill in place position x
+            # TODO: Fill in place position y
+            # TODO: Fill in place position z
+        ],
+        [
+            # TODO: Fill in place orientation qx
+            # TODO: Fill in place orientation qy
+            # TODO: Fill in place orientation qz
+            # TODO: Fill in place orientation qw
+        ]
     )
 
     # ========================================================
@@ -227,3 +297,4 @@ if __name__ == "__main__":
 
     rospy.loginfo("Pick and place completed")
     rospy.spin()
+

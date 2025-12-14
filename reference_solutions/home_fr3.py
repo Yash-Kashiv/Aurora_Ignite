@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-home_fr3.py
+Authors: Samriddhi Dubey, MTech, IIT Gandhinagar
+         Yash Kashiv, MTech, IIT Gandhinagar
 
-Move the FR3 arm from its current pose to a “home” 7 joint configuration
+This file moves the FR3 arm from its current pose to a “home” 7 joint configuration
 using a quintic joint space trajectory and velocity control.
+
 """
 
 import rospy
@@ -14,7 +16,9 @@ from std_msgs.msg import Float64MultiArray
 from ds_control.trajectory_planner import TrajectoryPlanner
 
 # “Home” joint angles for FR3 (7‐DOF)
-################# ---------------------------- Home fr3 ------------------------------------######################
+
+####===================== Home FR3 ======================#####
+
 HOME_FR3_JOINTS    = np.array([
     0.0015584473835553482,
    -0.7841060606330866,

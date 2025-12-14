@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""
+Authors: Samriddhi Dubey, MTech, IIT Gandhinagar
+         Yash Kashiv, MTech, IIT Gandhinagar
+
+REFERENCE SOLUTION: Forward Kinematics Challenge
+
+This file moves the FR3 arm from its current pose to the desired 7 joint configuration
+using a quintic joint space trajectory and velocity control.
+
+STUDENT TODO:
+1. Fill in the FR3_JOINTS array below with the correct joint angles for the FR3 robot.
+   The array should contain 7 float values representing the joint angles in radians.
+
+2. Find and fill in the correct ROS topic names:
+   - Run 'rostopic list' in a terminal to see all available topics
+   - Find the topic for publishing joint velocity commands
+   - Find the topic for subscribing to joint states
+   - Replace the "TODO" strings in the Publisher and Subscriber with the correct topic names
+
+"""
+
+import rospy
+import numpy as np
+from sensor_msgs.msg import JointState
+from std_msgs.msg import Float64MultiArray
+
+from ds_control.trajectory_planner import TrajectoryPlanner
+
+#  joint angles for FR3 (7‐DOF)
+# TODO: Students should fill in the correct joint angles below
+
+FR3_JOINTS    = np.array([
+    # TODO: Fill in joint 1 angle
+    # TODO: Fill in joint 2 angle
+    # TODO: Fill in joint 3 angle
+    # TODO: Fill in joint 4 angle
+    # TODO: Fill in joint 5 angle
+    # TODO: Fill in joint 6 angle
+    # TODO: Fill in joint 7 angle
+], dtype=float)
+
+
+TRAJECTORY_TIME    = 5.0   # seconds
+DT                 = 0.001 # 1 kHz
+
+class HomeFR3Commander:
+    def __init__(self):
+        rospy.init_node("fr3", anonymous=True)
+
+        # Publisher to FR3's joint‐velocity controller
+        self.pub = rospy.Publisher(
+            "TODO",
+            Float64MultiArray, queue_size=1
+        )
+        # Subscriber to FR3 joint states
+        self.sub = rospy.Subscriber(
+            "TODO",
+            JointState,
+            self.joint_state_callback
+        )
+
+        self.current_joints    = None
+        self.planner           = TrajectoryPlanner()
+        self.traj_generated    = False
+        self.velocity_traj     = None
+        self.dt                = DT
+        self.trajectory_index  = 0
+
+    def joint_state_callback(self, msg: JointState):
+        # read first 7 joints
+        positions = np.array(msg.position)
+        if positions.size < 7:
+            rospy.logwarn("fr3: received fewer than 7 joints")
+            return
+        self.current_joints = positions[:7]
+
+        # generate trajectory once
+        if not self.traj_generated:
+            _, self.velocity_traj, _ = self.planner.quintic_joint_trajectory(
+                self.current_joints,
+                FR3_JOINTS,
+                TRAJECTORY_TIME,
+                self.dt
+            )
+            self.traj_generated   = True
+            self.trajectory_index = 0
+            rospy.loginfo(f"fr3: trajectory from {self.current_joints} to {FR3_JOINTS}")
+
+    def run(self):
+        rate = rospy.Rate(1.0 / self.dt)
+        while not rospy.is_shutdown():
+            if self.traj_generated and self.trajectory_index < len(self.velocity_traj):
+                vel_cmd = self.velocity_traj[self.trajectory_index]
+                msg = Float64MultiArray(data=vel_cmd.tolist())
+                self.pub.publish(msg)
+                self.trajectory_index += 1
+            rate.sleep()
+
+if __name__ == "__main__":
+    node = HomeFR3Commander()
+    node.run()

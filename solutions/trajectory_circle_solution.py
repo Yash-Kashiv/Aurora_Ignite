@@ -1,17 +1,38 @@
 #!/usr/bin/env python3
+"""
+Authors: Samriddhi Dubey, MTech, IIT Gandhinagar
+         Yash Kashiv, MTech, IIT Gandhinagar
+
+This code makes the FR3 robot's end-effector follow a circular trajectory in the YZ plane.
+It demonstrates continuous Cartesian space motion control using:
+1. Parametric circle generation in the YZ plane using trigonometric functions
+2. Real-time trajectory tracking with DLS inverse kinematics
+3. Proportional control to minimize position and orientation errors
+4. Continuous motion that repeats indefinitely
+
+The circle parameters:
+- Center: Current end-effector position at startup
+- Radius: 0.15 meters
+- Period: 10 seconds per revolution
+- Plane: YZ (perpendicular to X-axis)
+
+The end-effector orientation remains fixed while the position traces a circle.
+This is useful for testing Cartesian trajectory following and velocity control.
+"""
 
 import rospy
 import numpy as np
 from geometry_msgs.msg import Pose
+from scipy.spatial.transform import Rotation
 
 from ds_control.robot_state   import RobotState
 from ds_control.kdl_ik_solver import DLSIKSolver
 from ds_control.dls_velocity  import DLSVelocityCommander
 
 
-class FrankaDLSController:
+class FrankaCircleYZController:
     def __init__(self):
-        rospy.init_node("fr3_dls_ee_pose_controller")
+        rospy.init_node("fr3_cartesian_circle_yz")
 
         # -------------------------------
         # Joint names
@@ -28,7 +49,7 @@ class FrankaDLSController:
         )
 
         # -------------------------------
-        # DLS IK solver
+        # IK Solver
         # -------------------------------
         self.ik = DLSIKSolver(
             urdf_param="/fr3/robot_description",
@@ -41,19 +62,26 @@ class FrankaDLSController:
         rospy.loginfo("Waiting for initial EE pose...")
         ee_msg = rospy.wait_for_message("/fr3/ee_pose", Pose)
         self.fr3_state.update_from_pose(ee_msg)
-        rospy.loginfo("Initial EE pose received")
 
         # -------------------------------
-        # Target EE pose
+        # Circle definition
         # -------------------------------
-        self.x_target = np.array([0.45, 0.0, 0.45])   # meters
-        self.q_target = np.array([0.9983181956026925, 0.03432997348545016, 0.03850373764272704, 0.026451756777431213])  # quaternion (xyzw)
+        self.center = self.fr3_state.ee_pos.copy()
+        self.q_fixed = self.fr3_state.ee_ori.copy()
+
+        self.radius = 0.15           # meters
+        self.period = 10.0           # seconds per revolution
+        self.omega = 2.0 * np.pi / self.period
+
+        self.start_time = rospy.get_time()
 
         # -------------------------------
         # Thresholds
         # -------------------------------
         self.pos_thresh = 1e-3
         self.ori_thresh = 1e-2
+
+        rospy.loginfo("Drawing circle in YZ plane")
 
         # -------------------------------
         # Velocity commander
@@ -71,39 +99,39 @@ class FrankaDLSController:
         )
 
     # ------------------------------------------------
-    # Cartesian error → desired twist
+    # Cartesian circular trajectory
     # ------------------------------------------------
     def twist_fn(self):
-        from scipy.spatial.transform import Rotation
+        t = rospy.get_time() - self.start_time
+
+        # Parametric circle in YZ plane
+        x_target = self.center[0]
+        y_target = self.center[1] + self.radius * np.cos(self.omega * t)
+        z_target = self.center[2] + self.radius * np.sin(self.omega * t)
+
+        x_target = np.array([x_target, y_target, z_target])
+        q_target = self.q_fixed
 
         x = self.fr3_state.ee_pos
         q = self.fr3_state.ee_ori
 
-        # Position error
-        ep = self.x_target - x
+        # Errors
+        ep = x_target - x
+        eo = (Rotation.from_quat(q_target)
+              * Rotation.from_quat(q).inv()).as_rotvec()
 
-        # Orientation error (SO(3) log map)
-        R = Rotation.from_quat(q)
-        Rt = Rotation.from_quat(self.q_target)
-        eo = (Rt * R.inv()).as_rotvec()
-
-        # Simple proportional controller
-        v = 1.5 * ep
+        # Cartesian proportional control
+        v = 2.0 * ep
         w = 1.0 * eo
-
-        # Stop when converged
-        if np.linalg.norm(ep) < self.pos_thresh and np.linalg.norm(eo) < self.ori_thresh:
-            rospy.loginfo_throttle(1.0, "Target pose reached")
-            return np.zeros(6)
 
         return np.hstack([v, w])
 
     def start(self):
-        rospy.loginfo("Starting FR3 DLS controller")
+        rospy.loginfo("Starting circular motion")
         self.commander.run()
 
 
 if __name__ == "__main__":
-    ctrl = FrankaDLSController()
+    ctrl = FrankaCircleYZController()
     ctrl.start()
     rospy.spin()

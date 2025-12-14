@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-home_fr3.py
+Authors: Samriddhi Dubey, MTech, IIT Gandhinagar 
+         Yash Kashiv, MTech, IIT Gandhinagar          
 
-Move the FR3 arm from its current pose to a “home” 7 joint configuration
+This file moves the FR3 arm from its current pose to the desired 7 joint configuration
 using a quintic joint space trajectory and velocity control.
+
 """
 
 import rospy
@@ -13,9 +15,9 @@ from std_msgs.msg import Float64MultiArray
 
 from ds_control.trajectory_planner import TrajectoryPlanner
 
-# “Home” joint angles for FR3 (7‐DOF)
-################# ---------------------------- Home fr3 ------------------------------------######################
-HOME_FR3_JOINTS    = np.array([
+#  joint angles for FR3 (7‐DOF)
+
+FR3_JOINTS    = np.array([
     0.0015584473835553482,
    -0.7841060606330866,
    -0.0007111409103181678,
@@ -31,7 +33,7 @@ DT                 = 0.001 # 1 kHz
 
 class HomeFR3Commander:
     def __init__(self):
-        rospy.init_node("home_fr3", anonymous=True)
+        rospy.init_node("fr3", anonymous=True)
 
         # Publisher to FR3’s joint‐velocity controller
         self.pub = rospy.Publisher(
@@ -56,7 +58,7 @@ class HomeFR3Commander:
         # read first 7 joints
         positions = np.array(msg.position)
         if positions.size < 7:
-            rospy.logwarn("home_fr3: received fewer than 7 joints")
+            rospy.logwarn("fr3: received fewer than 7 joints")
             return
         self.current_joints = positions[:7]
 
@@ -64,13 +66,13 @@ class HomeFR3Commander:
         if not self.traj_generated:
             _, self.velocity_traj, _ = self.planner.quintic_joint_trajectory(
                 self.current_joints,
-                HOME_FR3_JOINTS,
+                FR3_JOINTS,
                 TRAJECTORY_TIME,
                 self.dt
             )
             self.traj_generated   = True
             self.trajectory_index = 0
-            rospy.loginfo(f"home_fr3: trajectory from {self.current_joints} to {HOME_FR3_JOINTS}")
+            rospy.loginfo(f"fr3: trajectory from {self.current_joints} to {FR3_JOINTS}")
 
     def run(self):
         rate = rospy.Rate(1.0 / self.dt)

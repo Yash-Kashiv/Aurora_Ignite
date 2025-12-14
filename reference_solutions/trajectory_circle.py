@@ -1,4 +1,24 @@
 #!/usr/bin/env python3
+"""
+Authors: Samriddhi Dubey, MTech, IIT Gandhinagar
+         Yash Kashiv, MTech, IIT Gandhinagar
+
+This code makes the FR3 robot's end-effector follow a circular trajectory in the YZ plane.
+It demonstrates continuous Cartesian space motion control using:
+1. Parametric circle generation in the YZ plane using trigonometric functions
+2. Real-time trajectory tracking with DLS inverse kinematics
+3. Proportional control to minimize position and orientation errors
+4. Continuous motion that repeats indefinitely
+
+The circle parameters:
+- Center: Current end-effector position at startup
+- Radius: 0.15 meters
+- Period: 10 seconds per revolution
+- Plane: YZ (perpendicular to X-axis)
+
+The end-effector orientation remains fixed while the position traces a circle.
+This is useful for testing Cartesian trajectory following and velocity control.
+"""
 
 import rospy
 import numpy as np
@@ -49,7 +69,7 @@ class FrankaCircleYZController:
         self.center = self.fr3_state.ee_pos.copy()
         self.q_fixed = self.fr3_state.ee_ori.copy()
 
-        self.radius = 0.15           # meters
+        self.radius = # TODO           # meters
         self.period = 10.0           # seconds per revolution
         self.omega = 2.0 * np.pi / self.period
 
@@ -70,10 +90,10 @@ class FrankaCircleYZController:
             robot_state=self.fr3_state,
             ik_solver=self.ik,
             custom_ds=self.twist_fn,
-            joint_state_topic="/fr3/joint_states",
-            ee_pose_topic="/fr3/ee_pose",
+            joint_state_topic="TODO",
+            ee_pose_topic="TODO",
             ee_pose_msg_type=Pose,
-            velocity_command_topic="/fr3/joint_velocity_controller/joint_velocity_command",
+            velocity_command_topic="TODO",
             max_cartesian_vel=0.05,
             max_angular_vel=0.2,
         )
@@ -87,7 +107,7 @@ class FrankaCircleYZController:
         # Parametric circle in YZ plane
         x_target = self.center[0]
         y_target = self.center[1] + self.radius * np.cos(self.omega * t)
-        z_target = self.center[2] + self.radius * np.sin(self.omega * t)
+        z_target = self.center[2] # TODO
 
         x_target = np.array([x_target, y_target, z_target])
         q_target = self.q_fixed
