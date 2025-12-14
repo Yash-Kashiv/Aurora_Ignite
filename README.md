@@ -1,7 +1,8 @@
 # Aurora Ignite
 
-Welcome to the Aurora Ignite course repository!
+Welcome to the Aurora Ignite FR3 Robotic Arm Control Challenges repository 
 
 ## Course Guide
 
-You can find the detailed guide of the course [here](https://samriddhi-dubey06.github.io/aurora_ignite/).
+Explore the detailed guide for all the FR3 Robotic Arm Control Challenges [here](https://samriddhi-dubey06.github.io/aurora_ignite/). Happy learning!
+
